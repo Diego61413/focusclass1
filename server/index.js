@@ -17,7 +17,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new IOServer(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://focusclass1.vercel.app"],
     methods: ["GET", "POST", "DELETE"],
     credentials: true,
   },
@@ -28,7 +28,10 @@ const PORT = process.env.PORT || 4000;
 /* =======================================================
    🔧 Middlewares
 ======================================================= */
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ 
+  origin: ["http://localhost:5173", "https://focusclass1.vercel.app"], 
+  credentials: true 
+}));
 app.use(express.json());
 
 /* =======================================================
@@ -200,12 +203,11 @@ io.on("connection", (socket) => {
 /* =======================================================
    🧩 Namespace /activity – Actividades tipo Kahoot/Quiz
 ======================================================= */
-const activityState = {}; // { activityId: { teacherSocketId, students:{} } }
+const activityState = {};
 const ACT_HB_TIMEOUT = 10000;
 const activityNs = io.of("/activity");
 
 activityNs.on("connection", (socket) => {
-  // Crear / abrir actividad
   socket.on("activity:start", ({ activityId, meta, asTeacher }) => {
     if (!activityId) return;
     socket.join(`activity:${activityId}`);
@@ -215,7 +217,6 @@ activityNs.on("connection", (socket) => {
     activityNs.to(`activity:${activityId}`).emit("activity:open", { activityId, meta });
   });
 
-  // Alumno entra
   socket.on("activity:join", ({ activityId, alumno }) => {
     if (!activityId || !alumno) return;
     socket.join(`activity:${activityId}`);
@@ -224,14 +225,12 @@ activityNs.on("connection", (socket) => {
     activityNs.to(`activity:${activityId}`).emit("activity:student-joined", { activityId, alumno, sid: socket.id });
   });
 
-  // Heartbeat
   socket.on("activity:hb", ({ activityId }) => {
     const A = activityState[activityId];
     const S = A?.students?.[socket.id];
     if (S && S.status === "running") S.lastSeen = Date.now();
   });
 
-  // Alumno abandona o cambia pestaña
   socket.on("activity:left", ({ activityId, reason = "left_page" }) => {
     const A = activityState[activityId];
     const S = A?.students?.[socket.id];
@@ -246,7 +245,6 @@ activityNs.on("connection", (socket) => {
     });
   });
 
-  // Alumno termina correctamente
   socket.on("activity:finish", ({ activityId, score = 0 }) => {
     const A = activityState[activityId];
     const S = A?.students?.[socket.id];
@@ -261,7 +259,6 @@ activityNs.on("connection", (socket) => {
     });
   });
 
-  // Desconexión: si estaba activo, cuenta como cancelación
   socket.on("disconnect", () => {
     for (const [aid, A] of Object.entries(activityState)) {
       const S = A.students[socket.id];
@@ -279,7 +276,6 @@ activityNs.on("connection", (socket) => {
   });
 });
 
-// Vigilancia periódica de inactividad
 setInterval(() => {
   const now = Date.now();
   for (const [aid, A] of Object.entries(activityState)) {
