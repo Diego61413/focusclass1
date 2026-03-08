@@ -1,6 +1,6 @@
 // client/src/api.js
 const API = {
-  base: "http://localhost:4000",
+  base: import.meta.env.VITE_API_URL || "http://localhost:4000",
   async get(path) {
     const r = await fetch(this.base + path, { headers: authHeader() });
     return r.json();
