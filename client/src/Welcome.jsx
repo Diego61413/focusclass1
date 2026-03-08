@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import API from "./api.js";
 import "./App.css";
 
-const socket = io("http://localhost:4000", { autoConnect: true });
+const socket = io(import.meta.env.VITE_API_URL || "http://localhost:4000", { autoConnect: true });
 
 export default function Welcome({
   onEnterChat,

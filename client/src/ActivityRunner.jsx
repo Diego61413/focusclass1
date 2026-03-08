@@ -433,7 +433,7 @@ export default function ActivityRunner({ activityId, alumno, quiz, onClose, modo
   /* ── Socket ── */
   useEffect(()=>{
     if (modoRevision) return;
-    const ACT_URL = (typeof import.meta!=="undefined"&&import.meta.env?.VITE_SOCKET_URL)||"http://localhost:4000";
+    const ACT_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
     const s = io(ACT_URL,{autoConnect:true,transports:["websocket"]});
     socketRef.current = s;
     s.emit("activity:join",{activityId,alumno});
