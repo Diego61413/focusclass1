@@ -1,6 +1,7 @@
 // client/src/ProfessorPanel.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import TabActividades from "./GamesManager";
+import CoursesPanel from "./CoursesPanel.jsx";
 
 /* ─── Mock API (reemplazar con tu API real) ─────────────────── */
 const API = {
@@ -1329,6 +1330,7 @@ const TABS = [
   { id:"actividades", label:"Actividades",  icon:"🎮" },
   { id:"live",        label:"En vivo",      icon:"⚡" },
   { id:"moderacion",  label:"Moderación",   icon:"🛡️" },
+  { id:"cursos", label:"Cursos", icon:"🎓" },
 ];
 
 export default function ProfessorPanel({ onClose }) {
@@ -1387,6 +1389,7 @@ export default function ProfessorPanel({ onClose }) {
         {tab==="actividades" && <TabActividades showToast={showToast}/>}
         {tab==="live"        && <TabEnVivo      showToast={showToast}/>}
         {tab==="moderacion"  && <TabModeracion  mensajes={mensajes} usuarios={usuarios} loading={loading} showToast={showToast}/>}
+        {tab==="cursos" && <CoursesPanel mode="professor" showToast={showToast}/>}
       </div>
 
       {toastEl}
