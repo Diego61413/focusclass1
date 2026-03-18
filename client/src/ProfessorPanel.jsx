@@ -1,3 +1,4 @@
+import VoiceQuizCreator from "./VoiceQuizCreator"
 // client/src/ProfessorPanel.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import TabActividades from "./GamesManager";
@@ -996,6 +997,7 @@ function TabQuiz({ showToast }) {
     { id:uid(), titulo:"Examen Parcial 1 — HTML & CSS", clase:"Programación Web", preguntas:5, publicado:true, fecha:new Date().toISOString() },
     { id:uid(), titulo:"Repaso — Álgebra Relacional", clase:"Base de Datos", preguntas:8, publicado:false, fecha:new Date(Date.now()-86400000).toISOString() },
   ]);
+  const [voiceModal, setVoiceModal] = useState(false);
   const [building, setBuilding] = useState(false);
   const [draft, setDraft]       = useState(INIT_QUIZ);
   const [editId, setEditId]     = useState(null);
@@ -1040,11 +1042,19 @@ function TabQuiz({ showToast }) {
     </div>
   );
 
-  return (
+ return (
     <div className="stack">
       <div className="sec-head">
         <div><div className="eyebrow">Evaluaciones</div><div className="sec-title">Mis quizzes</div></div>
-        <button className="btn btn-primary" onClick={()=>{setDraft(INIT_QUIZ);setEditId(null);setBuilding(true)}}>+ Crear quiz</button>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <button className="btn btn-gold" onClick={()=>setVoiceModal(true)}
+            style={{display:"flex",alignItems:"center",gap:7}}>
+            🎙️ Crear con voz
+          </button>
+          <button className="btn btn-ghost" onClick={()=>{setDraft(INIT_QUIZ);setEditId(null);setBuilding(true)}}>
+            ✏️ Manual
+          </button>
+        </div>
       </div>
       {quizzes.length===0 && <div className="empty"><span className="empty-icon">🧠</span>No has creado ningún quiz aún.</div>}
       {quizzes.map(q=>(
@@ -1053,6 +1063,9 @@ function TabQuiz({ showToast }) {
             <span>🏫 {q.clase}</span>
             <span>❓ {q.preguntas} preguntas</span>
             <span className={q.publicado?"badge-ok":"badge-warn"}>{q.publicado?"Publicado":"Borrador"}</span>
+            {q._fromVoice && (
+              <span style={{fontFamily:"'DM Mono',monospace",fontSize:9,background:"rgba(240,192,96,.14)",border:"1px solid rgba(240,192,96,.3)",color:"var(--gold)",padding:"2px 8px",borderRadius:999,display:"inline-flex",alignItems:"center",gap:4}}>🎙️ IA</span>
+            )}
             <span>{fmt(q.fecha)}</span>
           </div>
           <div className="item-title">{q.titulo}</div>
@@ -1063,6 +1076,23 @@ function TabQuiz({ showToast }) {
           </div>
         </div>
       ))}
+      {voiceModal && (
+        <VoiceQuizCreator
+          onQuizCreado={(quizGenerado) => {
+            setQuizzes(prev => [{
+              id: uid(),
+              titulo: quizGenerado.titulo,
+              clase: quizGenerado.clase,
+              preguntas: quizGenerado.preguntas.length,
+              publicado: true,
+              fecha: new Date().toISOString(),
+              _fromVoice: true,
+            }, ...prev]);
+          }}
+          onClose={()=>setVoiceModal(false)}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
